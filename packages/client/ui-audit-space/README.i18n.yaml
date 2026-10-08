@@ -1,0 +1,34 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/client/ui-audit-space/README.md
+/:
+  en: 647fb6a1a931a495
+  zh: 5a903fcc6d0a6869
+/deepseek-ai-dsh-client-ui-audit-space:
+  en: 80df6fc529e116f6
+  zh: ffa0d711c497fd53
+/deepseek-ai-dsh-client-ui-audit-space/summary:
+  en: a0b4070d9360ed56
+  zh: 4311fd7dbcdf611e
+/deepseek-ai-dsh-client-ui-audit-space/table-of-contents:
+  en: 122f0d41696980b1
+  zh: 528864635b577290
+/deepseek-ai-dsh-client-ui-audit-space/use-this-package:
+  en: 46003d458b6d275c
+  zh: 809ade0a523d0635
+/deepseek-ai-dsh-client-ui-audit-space/understand-the-implementation:
+  en: 2e0d859c6823416e
+  zh: a90406930678cb6c
+/deepseek-ai-dsh-client-ui-audit-space/model-experience:
+  en: 2b4018f2ed7ba481
+  zh: 14da3031fe88324b
+/deepseek-ai-dsh-client-ui-audit-space/model-experience/kv-cache-effect:
+  en: 84def8dda499da30
+  zh: 9436194054f1ce30
+/deepseek-ai-dsh-client-ui-audit-space/known-limitations-and-deferred-work:
+  en: 092d7567da6fb7ad
+  zh: 7b80be861d766c62
+/deepseek-ai-dsh-client-ui-audit-space/known-limitations-and-deferred-work/dev-note:
+  en: f81974b516f527d0
+  zh: 4faba07381b3f75b
