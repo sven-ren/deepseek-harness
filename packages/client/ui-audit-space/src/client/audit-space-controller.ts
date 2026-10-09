@@ -196,12 +196,19 @@ export class AuditSpaceController {
     this.fold.lastDurableSeq = seq
     switch (event.type) {
       case 'user/message': {
+        // Injected context (agent instructions, runtime context, skills) also
+        // arrives as `user/message`; only a human-authored row is a chat turn.
+        // The cursor still advanced, but nothing re-renders.
+        if (event.data.source.kind !== 'user') return false
         this.fold.lines.push({ kind: 'user', text: blocksToText(event.data.content) })
         return true
       }
       case 'assistant/message': {
         const { turn, step, message } = event.data
-        this.fold.lines.push({ kind: 'assistant', text: blocksToText(message.content) })
+        const text = blocksToText(message.content)
+        // A tool-call-only step carries no prose; the `tool/call` rows below
+        // stand in for it, and an empty bubble would be pure chrome.
+        if (text.length > 0) this.fold.lines.push({ kind: 'assistant', text })
         for (const [attemptId, entry] of this.fold.streaming) {
           if (entry.turn === turn && entry.step === step) this.fold.streaming.delete(attemptId)
         }

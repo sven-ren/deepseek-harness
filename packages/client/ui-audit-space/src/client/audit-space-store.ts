@@ -6,6 +6,7 @@
  */
 import { defineStore, type EngineStoreHandle } from '@deepseek-ai/dsh-client-store'
 import type { SessionId } from '@deepseek-ai/dsh-session/types'
+import { WIDE_TABLES } from './mock-data.ts'
 
 /** One chat row in the audit transcript. */
 export type AuditLine =
@@ -30,7 +31,21 @@ export type AuditSpaceState = {
   /** Ids of the wide tables toggled on in the picker. */
   selectedTables: readonly number[]
   tableQuery: string
-  projectQuery: string
+  /** Whether the 项目基础信息 card is folded down to its header. */
+  folded: boolean
+  /** Committed field selection per wide-table id (field numbers). */
+  fieldSelection: Readonly<Record<number, readonly number[]>>
+  /** Wide table whose 字段选择 modal is open, or null when closed. */
+  fieldTableId: number | null
+  /** Draft field numbers being edited inside the open modal. */
+  fieldDraft: readonly number[]
+  fieldQuery: string
+  /** Whether the open field modal is showing its "pick at least one" error. */
+  fieldError: boolean
+  /** Wide table whose 数据范围 modal is open, or null when closed. */
+  scopeTableId: number | null
+  /** Whether the 项目详情 modal is open. */
+  pjInfoOpen: boolean
   /** Settled chat lines, in display order. */
   lines: readonly AuditLine[]
   /** In-flight assistant text streaming live at the end of the transcript. */
@@ -51,7 +66,24 @@ export type AuditSpaceActions = {
   clearProject(draft: AuditSpaceState): void
   toggleTable(draft: AuditSpaceState, id: number): void
   setTableQuery(draft: AuditSpaceState, query: string): void
-  setProjectQuery(draft: AuditSpaceState, query: string): void
+  /** Fold or unfold the 项目基础信息 card. */
+  toggleFold(draft: AuditSpaceState): void
+  /** Fold the card without toggling (used when a chat message is sent). */
+  foldCard(draft: AuditSpaceState): void
+  /** Open the 字段选择 modal for `tableId`, seeding the draft from the committed selection. */
+  openFieldModal(draft: AuditSpaceState, tableId: number): void
+  closeFieldModal(draft: AuditSpaceState): void
+  setFieldQuery(draft: AuditSpaceState, query: string): void
+  /** Toggle one field number in the open modal's draft. */
+  toggleField(draft: AuditSpaceState, no: number): void
+  /** Set every field of the open modal's table on or off. */
+  setAllFields(draft: AuditSpaceState, on: boolean): void
+  /** Commit the draft into `fieldSelection` and close the modal. */
+  confirmFields(draft: AuditSpaceState): void
+  openScope(draft: AuditSpaceState, tableId: number): void
+  closeScope(draft: AuditSpaceState): void
+  openPjInfo(draft: AuditSpaceState): void
+  closePjInfo(draft: AuditSpaceState): void
   setDraft(draft: AuditSpaceState, text: string): void
   setSending(draft: AuditSpaceState, sending: boolean): void
   setSession(draft: AuditSpaceState, sessionId: SessionId): void
@@ -67,6 +99,20 @@ export type AuditSpaceActions = {
   ): void
 }
 
+/** Seed the committed selection from the prototype's per-field defaults. */
+function seedFieldSelection(): Record<number, readonly number[]> {
+  const seeded: Record<number, readonly number[]> = {}
+  for (const table of WIDE_TABLES) {
+    seeded[table.id] = table.fields.filter(field => field.checked).map(field => field.no)
+  }
+  return seeded
+}
+
+/** Seed the wide-table checkboxes from the prototype's authorization flags. */
+function seedSelectedTables(): readonly number[] {
+  return WIDE_TABLES.filter(table => table.auth).map(table => table.id)
+}
+
 /**
  * The panel store factory, consumed by the main-slot registration.
  * @returns the store handle whose single instance the panel reads and writes.
@@ -75,9 +121,16 @@ export function createAuditSpaceStore(): EngineStoreHandle<AuditSpaceState, Audi
   return defineStore({
     init: (): AuditSpaceState => ({
       project: null,
-      selectedTables: [],
+      selectedTables: seedSelectedTables(),
       tableQuery: '',
-      projectQuery: '',
+      folded: false,
+      fieldSelection: seedFieldSelection(),
+      fieldTableId: null,
+      fieldDraft: [],
+      fieldQuery: '',
+      fieldError: false,
+      scopeTableId: null,
+      pjInfoOpen: false,
       lines: [],
       streaming: [],
       running: false,
@@ -89,6 +142,7 @@ export function createAuditSpaceStore(): EngineStoreHandle<AuditSpaceState, Audi
     actions: {
       selectProject: (draft, project) => {
         draft.project = project
+        draft.folded = false
       },
       clearProject: (draft) => {
         draft.project = null
@@ -101,8 +155,66 @@ export function createAuditSpaceStore(): EngineStoreHandle<AuditSpaceState, Audi
       setTableQuery: (draft, query) => {
         draft.tableQuery = query
       },
-      setProjectQuery: (draft, query) => {
-        draft.projectQuery = query
+      toggleFold: (draft) => {
+        draft.folded = !draft.folded
+      },
+      foldCard: (draft) => {
+        draft.folded = true
+      },
+      openFieldModal: (draft, tableId) => {
+        draft.fieldTableId = tableId
+        draft.fieldDraft = draft.fieldSelection[tableId] ?? []
+        draft.fieldQuery = ''
+        draft.fieldError = false
+      },
+      closeFieldModal: (draft) => {
+        draft.fieldTableId = null
+        draft.fieldDraft = []
+        draft.fieldQuery = ''
+        draft.fieldError = false
+      },
+      setFieldQuery: (draft, query) => {
+        draft.fieldQuery = query
+      },
+      toggleField: (draft, no) => {
+        draft.fieldDraft = draft.fieldDraft.includes(no)
+          ? draft.fieldDraft.filter(entry => entry !== no)
+          : [...draft.fieldDraft, no]
+        draft.fieldError = false
+      },
+      setAllFields: (draft, on) => {
+        const tableId = draft.fieldTableId
+        if (tableId === null) return
+        const table = WIDE_TABLES.find(candidate => candidate.id === tableId)
+        if (table === undefined) return
+        draft.fieldDraft = on ? table.fields.map(field => field.no) : []
+        draft.fieldError = false
+      },
+      confirmFields: (draft) => {
+        const tableId = draft.fieldTableId
+        if (tableId === null) return
+        // 字段选择是必填项：an empty draft keeps the modal open on its error.
+        if (draft.fieldDraft.length === 0) {
+          draft.fieldError = true
+          return
+        }
+        draft.fieldSelection = { ...draft.fieldSelection, [tableId]: [...draft.fieldDraft] }
+        draft.fieldTableId = null
+        draft.fieldDraft = []
+        draft.fieldQuery = ''
+        draft.fieldError = false
+      },
+      openScope: (draft, tableId) => {
+        draft.scopeTableId = tableId
+      },
+      closeScope: (draft) => {
+        draft.scopeTableId = null
+      },
+      openPjInfo: (draft) => {
+        draft.pjInfoOpen = true
+      },
+      closePjInfo: (draft) => {
+        draft.pjInfoOpen = false
       },
       setDraft: (draft, text) => {
         draft.draft = text
