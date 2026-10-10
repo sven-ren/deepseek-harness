@@ -61,6 +61,10 @@ AccountDetails.balance projects recharge wallets in value and promotional wallet
 
 Bonus notification queries return an AccountBonusBatch with the current Platform account id and eligible orders in server order. AccountBonusNotification retains the server message and expiry without projecting credentials. Acknowledgment carries the expected account id and order id; the Host refuses it after an account change. Both notification operations use the initiating UI language through x-client-locale, without a language query parameter.
 
+## Enterprise SSO
+
+`ctx.honglingAuth` publishes one deployment's enterprise sign-in. The Host half runs the loopback OIDC flow and keeps the id_token in a mode-0600 file under the harness home, so the browser never holds it; a consumer reads the live token through `getToken()`, which renews first inside the refresh margin so a token cannot expire mid-request. Only `devAuth` compositions may mint a login for an arbitrary username.
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -365,6 +369,44 @@ abstract getDeviceIdentity(): Promise<{ deviceId?: string; userId?: AccountUserI
 ```
 
 Source: [`packages/credentials/deepseek-account/src/index.ts`](../../packages/credentials/deepseek-account/src/index.ts)
+
+<a id="ctxhonglingauth--honglingauthservice"></a>
+
+### `ctx.honglingAuth` — `HonglingAuthService`
+
+Host-process service published as `ctx.honglingAuth`, so other plugins' host halves can attach the operator's token to their own upstream calls. The token stays inside the host process and never reaches the browser.
+
+```ts cordis-catalog
+/**
+ * The current login state, redacted: it names the profile and the expiry, and
+ * carries no token.
+ * @returns the same snapshot the browser half reads over the RPC channel.
+ */
+getStatus(): AuthStatus
+
+/**
+ * Current valid id_token, silently renewed first when it is inside the
+ * refresh margin, so a caller never presents a token that expires mid-request.
+ * @returns the token, or undefined when the deployment holds no login.
+ */
+getToken(): Promise<string | undefined>
+
+/**
+ * Force a `/dsh/refresh` round trip; an `invalid_grant` clears the login
+ * instead of retrying, and any other failure keeps the current token.
+ * @returns whether a fresh token replaced the current one.
+ */
+refresh(): Promise<boolean>
+
+/**
+ * Subscribe to login, logout, and token rotation.
+ * @param listener - called after every state change.
+ * @returns the unsubscribe for that listener.
+ */
+onChange(listener: () => void): () => void
+```
+
+Source: [`packages/client/hongling-auth/src/types.ts`](../../packages/client/hongling-auth/src/types.ts)
 
 <a id="authorization-events"></a>
 

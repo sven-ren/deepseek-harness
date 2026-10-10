@@ -1,0 +1,34 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types",
+    "tsBuildInfoFile": "lib/tsconfig.host.tsbuildinfo"
+  },
+  "files": [
+    "src/browser.ts",
+    "src/channel.ts",
+    "src/config.ts",
+    "src/errors.ts",
+    "src/index.ts",
+    "src/jwt.ts",
+    "src/login-session.ts",
+    "src/runtime.ts",
+    "src/token-store.ts",
+    "src/types.ts"
+  ],
+  "references": [
+    {
+      "path": "../../../vendor/cordis"
+    },
+    {
+      "path": "../../../vendor/schemastery"
+    },
+    {
+      "path": "../../util/home-paths"
+    },
+    {
+      "path": "../connection/tsconfig.host.json"
+    }
+  ]
+}

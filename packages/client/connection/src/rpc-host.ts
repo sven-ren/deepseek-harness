@@ -65,6 +65,7 @@ export class HostConnectionService extends Service implements HostConnectionHand
   readonly operator: PeerScope
   private readonly interceptors = new Map<string, ConnectionRpcInterceptor>()
   private readonly fetchRoutes = new Map<string, RegisteredFetchRoute>()
+  private routeHost: Context | undefined
 
   /**
    * Provide the Host half over the active HTTP server.
@@ -80,6 +81,17 @@ export class HostConnectionService extends Service implements HostConnectionHand
     super(ctx, 'connection')
     this.operator = new OperatorPeer(ctx)
     ctx.effect(() => () => this.operator.dispose(), 'client-connection: operator Peer')
+  }
+
+  /**
+   * Adopt the context that carries `webServer`, which mounts every channel
+   * route. The plugin calls this from its own `webServer` child: a caller's
+   * fiber resolves services inside this service's chain, and Connection is
+   * carrier-neutral, so it never declares `webServer` there.
+   * @param host - this plugin's context with `webServer` available.
+   */
+  attachRouteHost(host: Context): void {
+    this.routeHost = host
   }
 
   /** Generic channel registry scoped to the Context reading this service. */
@@ -188,10 +200,21 @@ export class HostConnectionService extends Service implements HostConnectionHand
         await bridge(req, res, fetchHandler)
       },
     }
-    return owner.effect(
-      () => owner.webServer.register(route),
-      `client-connection: ${channel} rpc channel`,
-    )
+    // The route mounts through the plugin's own `webServer` child, not through
+    // `owner`: a caller's context resolves services down this service's fiber
+    // chain, where `webServer` is deliberately absent. The caller still owns
+    // the returned disposer, so the channel lives and dies with its fiber.
+    return owner.effect(() => {
+      // A caller reached through `ctx.inject` cannot resolve `webServer` from
+      // its own fiber: the caller's context reads services down this plugin's
+      // chain, which is carrier-neutral and never declares the server. The
+      // route therefore mounts through the child that did inject it.
+      const host = this.routeHost
+      if (host === undefined) {
+        throw new Error(`connection: ${JSON.stringify(channel)} needs a mounted web server to become a route`)
+      }
+      return host.webServer.register(route)
+    }, `client-connection: ${channel} rpc channel`)
   }
 
   private registerInterceptor(

@@ -318,6 +318,24 @@
     - id: ui-brand-official
       name: '@deepseek-ai/dsh-client-ui-brand-official'
 
+    # 虹灵 brand: registers at priority -1, so it shadows ui-brand-official
+    # (and every shell fallback) in the sidebar and the blank-session hero.
+    - id: ui-brand-hongling
+      name: '@deepseek-ai/dsh-client-ui-brand-hongling'
+
+    # 虹灵 enterprise SSO. The Host half opens a loopback receiver, verifies
+    # the id_token, and keeps it under the harness home; it serves the
+    # browser half over the authenticated `/hongling-auth` RPC channel, and
+    # publishes `ctx.honglingAuth` for other plugins' Host halves. The
+    # browser half registers the account settings section (shadowing the
+    # shipped account page) and the login overlay.
+    - id: hongling-auth
+      name: '@deepseek-ai/dsh-client-hongling-auth'
+      config:
+        backendUrl: https://agent-sphere.changhong.com
+        verifyLocal: true
+        devAuth: false
+
     - id: ui-attachment
       name: '@deepseek-ai/dsh-client-ui-attachment'
 

@@ -61,6 +61,10 @@ AccountDetails.balance 将充值钱包投影为 value、赠送钱包投影为 bo
 
 赠金通知查询返回 AccountBonusBatch，包含当前 Platform 账号 id 和按服务端顺序排列的可通知订单。AccountBonusNotification 保留服务端消息与到期时间，不投影凭证。确认请求携带预期账号 id 和订单 id；账号变化后 Host 拒绝该请求。两项通知操作都通过 x-client-locale 传递发起界面的语言，不使用语言查询参数。
 
+## 企业 SSO
+
+`ctx.honglingAuth` 发布某一个部署的企业登录。Host 半边运行回环 OIDC 流程，把 id_token 保存在 harness home 下模式为 0600 的文件中，因此浏览器始终不持有它；消费方通过 `getToken()` 读取当前令牌，该方法会在续期窗口内先续期，令牌不会在请求中途过期。只有 `devAuth` 组合可以为任意用户名签发登录。
+
 <!-- BEGIN GENERATED cordis-surface (gen-cordis-catalog.ts) — do not edit between markers -->
 
 <a id="cordis-surface"></a>
@@ -365,6 +369,44 @@ abstract getDeviceIdentity(): Promise<{ deviceId?: string; userId?: AccountUserI
 ```
 
 Source: [`packages/credentials/deepseek-account/src/index.ts`](../../packages/credentials/deepseek-account/src/index.ts)
+
+<a id="ctxhonglingauth--honglingauthservice"></a>
+
+### `ctx.honglingAuth` — `HonglingAuthService`
+
+Host-process service published as `ctx.honglingAuth`, so other plugins' host halves can attach the operator's token to their own upstream calls. The token stays inside the host process and never reaches the browser.
+
+```ts cordis-catalog
+/**
+ * The current login state, redacted: it names the profile and the expiry, and
+ * carries no token.
+ * @returns the same snapshot the browser half reads over the RPC channel.
+ */
+getStatus(): AuthStatus
+
+/**
+ * Current valid id_token, silently renewed first when it is inside the
+ * refresh margin, so a caller never presents a token that expires mid-request.
+ * @returns the token, or undefined when the deployment holds no login.
+ */
+getToken(): Promise<string | undefined>
+
+/**
+ * Force a `/dsh/refresh` round trip; an `invalid_grant` clears the login
+ * instead of retrying, and any other failure keeps the current token.
+ * @returns whether a fresh token replaced the current one.
+ */
+refresh(): Promise<boolean>
+
+/**
+ * Subscribe to login, logout, and token rotation.
+ * @param listener - called after every state change.
+ * @returns the unsubscribe for that listener.
+ */
+onChange(listener: () => void): () => void
+```
+
+Source: [`packages/client/hongling-auth/src/types.ts`](../../packages/client/hongling-auth/src/types.ts)
 
 <a id="authorization-events"></a>
 

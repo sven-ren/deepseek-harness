@@ -1,0 +1,52 @@
+{
+  "extends": "../../../tsconfig.base.client.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib/types",
+    "tsBuildInfoFile": "lib/tsconfig.client.tsbuildinfo"
+  },
+  "files": [
+    "src/channel.ts",
+    "src/client/AuthBody.tsx",
+    "src/client/AuthOverlay.tsx",
+    "src/client/AuthSection.tsx",
+    "src/client/auth-panel.ts",
+    "src/client/auth-rpc.ts",
+    "src/client/index.ts",
+    "src/client/locales.ts",
+    "src/client/login-bridge.ts",
+    "src/client/presentation.ts",
+    "src/client/use-auth-polling.ts",
+    "src/css-modules.d.ts",
+    "src/types.ts"
+  ],
+  "references": [
+    {
+      "path": "../../../vendor/cordis"
+    },
+    {
+      "path": "../connection/tsconfig.client.json"
+    },
+    {
+      "path": "../locale/tsconfig.client.json"
+    },
+    {
+      "path": "../store"
+    },
+    {
+      "path": "../ui-layout"
+    },
+    {
+      "path": "../ui-primitives"
+    },
+    {
+      "path": "../ui-renderer"
+    },
+    {
+      "path": "../ui-settings/tsconfig.client.json"
+    },
+    {
+      "path": "../ui-slots"
+    }
+  ]
+}

@@ -133,7 +133,11 @@ export function apply(ctx: ClientContext): void {
           if (version !== rowsVersion || revision !== rowsRevision) {
             rowsVersion = version
             rowsRevision = revision
-            rows = ctx.slots.entries('settings.section')
+            // The nav is a render surface, so like renderSlot itself it lists
+            // the elected winner per occupied cell: a section shadowed at a
+            // lower priority (an enterprise account panel over the shipped
+            // one) adds no second row.
+            rows = ctx.slots.entriesOfSlot('settings.section')
               .map(e => ({
                 /* v8 ignore next -- list-slot registration requires id (SlotCore rejects an entry without one) */
                 id: e.options.id ?? '',

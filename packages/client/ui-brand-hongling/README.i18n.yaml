@@ -1,0 +1,43 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/client/ui-brand-hongling/README.md
+/:
+  en: 071914f285314109
+  zh: 922e2257ae3a968a
+/deepseek-ai-dsh-client-ui-brand-hongling:
+  en: d9f5f3ec2a89ccfb
+  zh: a5a7f895b8bd75f7
+/deepseek-ai-dsh-client-ui-brand-hongling/summary:
+  en: 42c8de415355526f
+  zh: c8a364c7f4d1ce50
+/deepseek-ai-dsh-client-ui-brand-hongling/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-client-ui-brand-hongling/use-this-package:
+  en: 502a53f320c30f06
+  zh: 96ac4da5abab7855
+/deepseek-ai-dsh-client-ui-brand-hongling/use-this-package/how-it-takes-over-the-slots:
+  en: c119b0f88ea4a918
+  zh: fd2fe7a119105fb7
+/deepseek-ai-dsh-client-ui-brand-hongling/use-this-package/replacing-the-brand-again:
+  en: 5e2c2bf30da4a9cf
+  zh: 479ef68206d47d9f
+/deepseek-ai-dsh-client-ui-brand-hongling/understand-the-implementation:
+  en: 7b609dbf7a6d9ac0
+  zh: 5eab1193801972b2
+/deepseek-ai-dsh-client-ui-brand-hongling/further-exploration:
+  en: 7a661227410005d0
+  zh: 90c29890f59b04ce
+/deepseek-ai-dsh-client-ui-brand-hongling/model-experience:
+  en: 618008c7641070e7
+  zh: 7233febb4d92ccfb
+/deepseek-ai-dsh-client-ui-brand-hongling/model-experience/kv-cache-effect:
+  en: ca75c51c89c2c9b0
+  zh: f57cc48a1b5cbfa9
+/deepseek-ai-dsh-client-ui-brand-hongling/known-limitations-and-deferred-work:
+  en: d501e181e298594c
+  zh: e027efef690fa75c
+/deepseek-ai-dsh-client-ui-brand-hongling/known-limitations-and-deferred-work/dev-note:
+  en: 63cce4070421366d
+  zh: dde1ea6e3c55c0ee

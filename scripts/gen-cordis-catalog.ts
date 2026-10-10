@@ -142,6 +142,7 @@ export const SERVICE_PAGE: Record<string, string> = {
   workspaceChanges: 'deliverables.md',
   terminalController: 'workspace.md',
   directoryPickerController: 'workspace.md',
+  honglingAuth: 'credentials.md',
 }
 
 /**
@@ -945,6 +946,7 @@ export const TYPE_LINK_EXEMPTIONS: Readonly<Record<string, string>> = {
   TerminalFrame: 'Browser terminal stream frames are owned by packages/api/terminal-controller/README.md',
   TerminalRetentionFrame: 'Browser terminal window holds are owned by packages/api/terminal-controller/README.md',
   WebTerminalId: 'Browser terminal identity is owned by packages/api/terminal-controller/README.md',
+  AuthStatus: 'enterprise-SSO login snapshot is owned by packages/client/hongling-auth/README.md',
 }
 
 /** Repository data policy consumed by the Cordis catalog projector. */

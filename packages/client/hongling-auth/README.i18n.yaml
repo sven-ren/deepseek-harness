@@ -1,0 +1,46 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/client/hongling-auth/README.md
+/:
+  en: 286ad9faf04bd426
+  zh: 621f77633a2c14f2
+/deepseek-ai-dsh-client-hongling-auth:
+  en: c021680d2d134fd4
+  zh: f89b46af917998db
+/deepseek-ai-dsh-client-hongling-auth/summary:
+  en: 46cdec200ce689d2
+  zh: 56503ed015d7eafb
+/deepseek-ai-dsh-client-hongling-auth/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: ac18ee9e4bc4a613
+/deepseek-ai-dsh-client-hongling-auth/use-this-package:
+  en: 7f3f5851928f43cd
+  zh: cdc059e725e3339a
+/deepseek-ai-dsh-client-hongling-auth/use-this-package/when-to-choose-it:
+  en: 5202654b344c0c7c
+  zh: 3f50f68dc6b3c8cc
+/deepseek-ai-dsh-client-hongling-auth/use-this-package/minimal-configuration:
+  en: 4afc0922d53b24ca
+  zh: 0f97a7ed74cafebe
+/deepseek-ai-dsh-client-hongling-auth/use-this-package/what-the-operator-sees:
+  en: 0b8ad9aa80fe2c5d
+  zh: 440f0d09f7887923
+/deepseek-ai-dsh-client-hongling-auth/understand-the-implementation:
+  en: 159d480a763fc358
+  zh: e07100397595ef1c
+/deepseek-ai-dsh-client-hongling-auth/further-exploration:
+  en: be37834c284b2bd1
+  zh: 5ecd04f3e6be4750
+/deepseek-ai-dsh-client-hongling-auth/model-experience:
+  en: d3191b6c3d72ae8f
+  zh: e1340bc4c91ed48f
+/deepseek-ai-dsh-client-hongling-auth/model-experience/kv-cache-effect:
+  en: ca3015e252db0114
+  zh: ebca9253cf15e8e9
+/deepseek-ai-dsh-client-hongling-auth/known-limitations-and-deferred-work:
+  en: 9f35dfb1f46edca8
+  zh: 52912b360dd18736
+/deepseek-ai-dsh-client-hongling-auth/known-limitations-and-deferred-work/dev-note:
+  en: 6b8984af68d7c2a2
+  zh: eb1cd3e54be39997

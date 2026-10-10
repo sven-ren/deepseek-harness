@@ -138,6 +138,9 @@ export async function apply(ctx: Context, config?: ConnectionConfig): Promise<vo
   )
   ctx.inject(['webServer'], (webCtx) => {
     assertImageBodyCapacity(webCtx, maxRequestBodyBytes)
+    // `rpc.handle` mounts a physical route, and only this child can see the
+    // server it mounts on.
+    connection.attachRouteHost(webCtx)
     webCtx.on('webserver/index-inject', (table) => {
       table.push({ kind: 'global', name: '__DSH_CONNECTION_RECOVERY__', value: recovery })
     })

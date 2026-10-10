@@ -1242,6 +1242,37 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
+    key: 'honglingAuth',
+    summary: 'Host-process service published as `ctx.honglingAuth`, so other plugins\' host halves can attach the operator\'s token to their own upstream calls.',
+    description: 'Host-process service published as `ctx.honglingAuth`, so other plugins\' host halves can attach the operator\'s token to their own upstream calls. The token stays inside the host process and never reaches the browser.',
+    methods: [
+      {
+        signature: 'getStatus(): AuthStatus',
+        description: 'The current login state, redacted: it names the profile and the expiry, and carries no token.',
+        parameters: [],
+        returns: 'the same snapshot the browser half reads over the RPC channel.',
+      },
+      {
+        signature: 'getToken(): Promise<string | undefined>',
+        description: 'Current valid id_token, silently renewed first when it is inside the refresh margin, so a caller never presents a token that expires mid-request.',
+        parameters: [],
+        returns: 'the token, or undefined when the deployment holds no login.',
+      },
+      {
+        signature: 'refresh(): Promise<boolean>',
+        description: 'Force a `/dsh/refresh` round trip; an `invalid_grant` clears the login instead of retrying, and any other failure keeps the current token.',
+        parameters: [],
+        returns: 'whether a fresh token replaced the current one.',
+      },
+      {
+        signature: 'onChange(listener: () => void): () => void',
+        description: 'Subscribe to login, logout, and token rotation.',
+        parameters: [{ name: 'listener', description: 'called after every state change.' }],
+        returns: 'the unsubscribe for that listener.',
+      },
+    ],
+  },
+  {
     key: 'inspector',
     summary: 'Shared Host/Client service façade over the realm\'s source publisher.',
     description: 'Shared Host/Client service façade over the realm\'s source publisher.',
@@ -4676,6 +4707,14 @@ export const TYPE_API: readonly TypeApiEntry[] = [
   {
     name: 'AuthorizationStatus',
     declaration: 'export type AuthorizationStatus = \'authorized\' | \'cancelled\';',
+  },
+  {
+    name: 'AuthProfile',
+    declaration: 'export interface AuthProfile {\n    username: string;\n    displayName: string;\n    email?: string;\n    roles: string[];\n}',
+  },
+  {
+    name: 'AuthStatus',
+    declaration: 'export interface AuthStatus {\n    loggedIn: boolean;\n    profile?: AuthProfile;\n    expiresAt?: number;\n    canRefresh?: boolean;\n}',
   },
   {
     name: 'BackendRegistry',

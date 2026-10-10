@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events'
 import { createServer, request as httpRequest } from 'node:http'
 import { Readable } from 'node:stream'
 import { Context } from '@deepseek-ai/cordis'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { AddressInfo } from 'node:net'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { AttachmentStore } from '@deepseek-ai/dsh-attachment'
@@ -392,6 +392,48 @@ describe('connection node half', () => {
     expect(routes.map(candidate => candidate.path)).toEqual([API_PATH])
     await fiber.dispose()
     expect(routes).toHaveLength(0)
+  })
+
+  it('refuses a dedicated channel when no web server is mounted', async () => {
+    const ctx = new Context()
+    provideBrowserCredentials(ctx)
+    const fiber = ctx.plugin({ inject: [...inject], apply })
+    await fiber.await()
+
+    const connection = ctx.get('connection') as HostConnectionHandle
+    expect(() => connection.rpc.handle('/rpc', async () => ({ ok: true, value: null })))
+      .toThrow('connection: "/rpc" needs a mounted web server to become a route')
+    await fiber.dispose()
+  })
+
+  it('mounts a dedicated channel claimed from a caller behind ctx.inject', async () => {
+    const ctx = new Context()
+    const routes: WebRoute[] = []
+    provideBrowserCredentials(ctx)
+    // The deployment shape: the web server is its own row, so it is nobody's
+    // ancestor, and the claiming plugin reaches Connection through an inject
+    // child. That caller's fiber cannot resolve `webServer` itself — such a
+    // request used to die with `cannot get property "webServer" without inject`
+    // and take a whole host half down with it.
+    ctx.plugin({ name: 'sibling-web-server', apply: (sibling: Context) => {
+      sibling.provide('webServer', fakeHttpServer(routes, []) as WebServer)
+    } })
+    const fiber = ctx.plugin({ inject: [...inject], apply })
+    await fiber.await()
+
+    let remove: (() => Promise<void>) | undefined
+    ctx.plugin({ name: 'consumer', inject: ['connection'], apply: (consumer: Context) => {
+      consumer.inject(['connection', 'webServer'], (child) => {
+        child.effect(() => {
+          remove = child.connection.rpc.handle('/sibling', async () => ({ ok: true, value: null }))
+          return remove
+        }, 'probe')
+      })
+    } })
+    await vi.waitFor(() => { expect(routes.map(candidate => candidate.path)).toEqual([API_PATH, '/sibling']) })
+
+    await remove?.()
+    expect(routes.map(candidate => candidate.path)).toEqual([API_PATH])
   })
 
   it('dispatches claimed /api endpoints and withdraws the claim', async () => {

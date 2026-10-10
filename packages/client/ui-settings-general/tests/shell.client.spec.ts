@@ -37,11 +37,12 @@ const CHILD_SPECS = {
 const CHILD_NAMES = Object.keys(CHILD_SPECS) as Array<keyof typeof CHILD_SPECS>
 
 /**
- * Section ids the web-app roster registers, in nav order: this package, then
+ * Section ids the web-app roster registers, in nav order: the enterprise
+ * account panel (hongling-auth, order `-10`), this package, then
  * ui-settings-models, ui-settings-plugins, and ui-agent-preset. A plugin
  * adding a section changes this list.
  */
-const PRODUCT_SECTIONS: readonly string[] = ['general', 'models', 'plugins', 'agent-presets']
+const PRODUCT_SECTIONS: readonly string[] = ['account', 'general', 'models', 'plugins', 'agent-presets']
 /** Onboarding steps the web-app roster registers, in coordinator order; both come from ui-settings-models. */
 const PRODUCT_ONBOARDING: readonly { id: string; order: number }[] = [
   { id: 'welcome-notice', order: -100 },
@@ -109,21 +110,27 @@ describe('ui-settings-general shell', () => {
     off()
   })
 
-  it('shows Account first in Desktop while signed in and removes it on sign-out', async ({ start }) => {
+  it('keeps one leading Account row while the shipped account section joins and withdraws', async ({ start }) => {
     vi.stubGlobal('dshDesktop', {})
     onTestFinished(() => { vi.unstubAllGlobals() })
     const c = await start()
     const { sections } = injectedOf(c).hooks
+    const accountEntries = () => c.ctx.slots.entries('settings.section').filter(entry => entry.options.id === 'account')
+    const ids = () => sections.getSnapshot().map(row => row.id)
     await c.mock.streams.opened('account/watch', 1)
-    expect(sections.getSnapshot().map(row => row.id)).toEqual(PRODUCT_SECTIONS)
+    // hongling-auth claims the id at priority -1 for the whole session, so the
+    // row leads from the first render instead of waiting on the sign-in stream.
+    expect(accountEntries()).toHaveLength(1)
+    expect(ids()).toEqual(PRODUCT_SECTIONS)
     c.mock.streams.push('account/watch', { status: 'credential-stored', attempt: null })
-    await vi.waitFor(() => {
-      expect(sections.getSnapshot().map(row => row.id)).toEqual(['account', ...PRODUCT_SECTIONS])
-    })
-    c.mock.streams.push('account/watch', { status: 'credential-stored', attempt: null })
-    await vi.waitFor(() => { expect(sections.getSnapshot().filter(row => row.id === 'account')).toHaveLength(1) })
+    // The shipped section registers the same id while signed in, and the
+    // ledger still projects one row for the pair rather than two.
+    await vi.waitFor(() => { expect(accountEntries()).toHaveLength(2) })
+    expect(ids()).toEqual(PRODUCT_SECTIONS)
     c.mock.streams.push('account/watch', { status: 'signed-out', attempt: null })
-    await vi.waitFor(() => { expect(sections.getSnapshot().map(row => row.id)).toEqual(PRODUCT_SECTIONS) })
+    await vi.waitFor(() => { expect(accountEntries()).toHaveLength(1) })
+    // Withdrawing the shipped occupant never takes the enterprise row with it.
+    expect(ids()).toEqual(PRODUCT_SECTIONS)
   })
 
   it('projects the roster Connection control without copying its state; reconnect opens a new $events generation', async ({ start }) => {

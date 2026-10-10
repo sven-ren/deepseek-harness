@@ -495,6 +495,29 @@ export interface Config {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-client-hmr -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-client-hongling-auth -->
+<a id="deepseek-aidsh-client-hongling-auth"></a>
+
+## `@deepseek-ai/dsh-client-hongling-auth`
+
+- `inject`: `connection`
+- `source`: [`packages/client/hongling-auth/src/index.ts:41`](../packages/client/hongling-auth/src/index.ts)
+
+```ts config-catalog
+/** Raw plugin config as authored in `cordis.patch.yml`. */
+export interface Config {
+  /** Market backend origin, without the `/api/v1` suffix. */
+  backendUrl?: string
+  /** Fixed loopback port for SSH port-forwarding setups; a random port otherwise. */
+  redirectPort?: number
+  /** Verify the id_token signature against the issuer's JWKS. */
+  verifyLocal?: boolean
+  /** Expose `auth.devLogin`, which mirrors the backend's `AUTH_MODE=dev` injection. */
+  devAuth?: boolean
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-client-hongling-auth -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-client-product-analytics -->
 <a id="deepseek-aidsh-client-product-analytics"></a>
 
@@ -4345,6 +4368,7 @@ export interface Config {
 | `@deepseek-ai/dsh-client-ui-approval` | — | [`packages/client/ui-approval/src/index.ts`](../packages/client/ui-approval/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-attachment` | — | [`packages/client/ui-attachment/src/index.ts`](../packages/client/ui-attachment/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-audit-space` | — | [`packages/client/ui-audit-space/src/index.ts`](../packages/client/ui-audit-space/src/index.ts) |
+| `@deepseek-ai/dsh-client-ui-brand-hongling` | — | [`packages/client/ui-brand-hongling/src/index.ts`](../packages/client/ui-brand-hongling/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-brand-official` | — | [`packages/client/ui-brand-official/src/index.ts`](../packages/client/ui-brand-official/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-chat` | — | [`packages/client/ui-chat/src/index.ts`](../packages/client/ui-chat/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-commands` | — | [`packages/client/ui-commands/src/index.ts`](../packages/client/ui-commands/src/index.ts) |

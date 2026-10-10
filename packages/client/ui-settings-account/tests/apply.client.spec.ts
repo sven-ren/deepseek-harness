@@ -15,7 +15,7 @@ import { Config as OnboardingConfig } from '../src/index.ts'
 import { ChatSettingsSchema as ChatConfig } from '../../ui-chat/src/chat-settings.ts'
 import { DeveloperToolsSettingsSchema as SettingsConfig } from '../../ui-settings/src/developer-tools-settings.ts'
 import type { DesktopOnboardingInjected } from '../src/client/DesktopOnboardingEntry.tsx'
-import type { AccountSectionInjected } from '../src/client/AccountSection.tsx'
+import { AccountSection, type AccountSectionInjected } from '../src/client/AccountSection.tsx'
 import { CONTACT_CONFIG_GLOBAL } from '../src/contact-config.ts'
 import { AccountPlatformHost } from '../src/client/AccountPlatformHost.tsx'
 import type { AccountPlatformHostInjected } from '../src/client/AccountPlatformHost.tsx'
@@ -48,6 +48,13 @@ function operations(c: TestClient): AccountSectionInjected {
 function quotaNoticeEntry(c: TestClient) {
   return c.ctx.slots.entries('shell.quota-notice').find(entry => entry.component === AccountQuotaNotice)
 }
+/**
+ * This package's own account section, whatever else claims the `account` id:
+ * hongling-auth occupies it unconditionally at priority `-1` in this roster.
+ */
+function accountSectionEntry(c: TestClient) {
+  return c.ctx.slots.entries('settings.section').find(entry => entry.component === AccountSection)
+}
 /** The account feature's one shared native Platform page host. */
 function platformHostEntry(c: TestClient) {
   return c.ctx.slots.entries('shell.overlay').find(entry => entry.component === AccountPlatformHost)
@@ -67,7 +74,7 @@ it('keeps account UI and account RPC inactive in a plain browser, including afte
     await c.flush()
     expect(c.ctx.slots.entries('settings.launcher')).toHaveLength(0)
     expect(c.ctx.slots.entries('settings.models.sign-in')).toHaveLength(0)
-    expect(c.ctx.slots.entries('settings.section').some(entry => entry.options.id === 'account')).toBe(false)
+    expect(accountSectionEntry(c)).toBeUndefined()
     expect(quotaNoticeEntry(c)).toBeUndefined()
     expect(platformHostEntry(c)).toBeUndefined()
     expect(mock.log.calls().filter(call => call.endpoint.startsWith('account/'))).toEqual([])
@@ -123,7 +130,7 @@ it('shares account actions across seats, publishes dialog ownership, and opens c
   c.mock.remote.account.getProfile.mockResolvedValue(ok(profile))
   c.mock.streams.push('account/watch', stored)
   await vi.waitFor(() => { expect(actions.hooks.account.getSnapshot().details?.profile).toEqual(profile) })
-  const entry = c.ctx.slots.entries('settings.section').find(entry => entry.options.id === 'account')!
+  const entry = accountSectionEntry(c)!
   expect(entry.inject!()).toBe(actions)
   expect(resolveSlotLabel(entry.options.label)).toBe('Account')
   vi.spyOn(c.ctx.locale, 'getSnapshot').mockReturnValue({ ...c.ctx.locale.getSnapshot(), active: 'zh' })
